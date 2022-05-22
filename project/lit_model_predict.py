@@ -350,7 +350,6 @@ def main(args):
             # Predict with a trained model using the provided input dataloader
             performing_quality_estimation = True
             if performing_quality_estimation:
-                casp_preds_col = []
                 prediction_results = trainer.predict(model=model, dataloaders=input_dataloader)
                 for updated_graph, filepaths in prediction_results:
                     filepath = filepaths[0]
@@ -389,80 +388,6 @@ def main(args):
                     g_quality_pred_df = pd.DataFrame(global_quality_pred.cpu().numpy(), columns=['Predicted LDDT-Ca'])
                     g_quality_pred_mean_val = g_quality_pred_df.sum(axis=0).values.squeeze() / num_res
                     g_quality_pred_df.loc[len(g_quality_pred_df.index)] = [g_quality_pred_mean_val]
-
-                    # Identify interfacing residues, and represent them with their Ca atoms
-                    interface_distance_threshold = 8.0  # Note: This quantity is measured in Angstrom
-                    _, interfacing_atom_mapping = get_interfacing_atom_indices(
-                        atoms_df, atoms_df.index, interface_distance_threshold, return_partners=True
-                    )
-                    interfacing_ca_atom_indices = set()
-                    for key in interfacing_atom_mapping.keys():
-                        first_atom = atoms_df.loc[key, :]
-                        # Follow CAPRI's definition of interface by looking for inter-chain res. w/ CB-CB distance < 8.0
-                        is_cb_first = first_atom['atom_name'] == 'CB'
-                        is_gly_ca_first = (first_atom['residue_name'] == 'GLY' and first_atom['atom_name'] == 'CA')
-                        if is_cb_first or is_gly_ca_first:
-                            # Account for Glycine not having carbon-beta (CB) atom by substituting it with Ca atom
-                            interfacing_atom_ids = interfacing_atom_mapping[key]
-                            for i in interfacing_atom_ids:
-                                second_atom = atoms_df.loc[i, :]
-                                is_cb_second = second_atom['atom_name'] == 'CB'
-                                is_gly_ca_second = (
-                                        second_atom['residue_name'] == 'GLY' and second_atom['atom_name'] == 'CA')
-                                if is_cb_second or is_gly_ca_second:
-                                    first_res_ca_atom = atoms_df[
-                                        (atoms_df['chain_id'] == first_atom['chain_id']) &
-                                        (atoms_df['residue_number'] == first_atom['residue_number'].item()) &
-                                        (atoms_df['atom_name'] == 'CA')
-                                        ]
-                                    second_res_ca_atom = atoms_df[
-                                        (atoms_df['chain_id'] == second_atom['chain_id']) &
-                                        (atoms_df['residue_number'] == second_atom['residue_number'].item()) &
-                                        (atoms_df['atom_name'] == 'CA')
-                                        ]
-                                    interfacing_ca_atom_indices.add(first_res_ca_atom.index.item())
-                                    interfacing_ca_atom_indices.add(second_res_ca_atom.index.item())
-
-                    interfacing_ca_atom_indices = list(interfacing_ca_atom_indices)
-                    interfacing_ca_atom_indices.sort()
-                    interfacing_ca_atom_indices = torch.LongTensor(interfacing_ca_atom_indices)
-                    interfacing_ca_atoms_df = atoms_df.loc[pd.Index(interfacing_ca_atom_indices.cpu().numpy()), :]
-
-                    if ca_only:
-                        i_ca_atoms_df = pd.merge(ca_atoms_df, interfacing_ca_atoms_df)
-                        interfacing_ca_atom_indices = torch.LongTensor(ca_atoms_df.reset_index(drop=True)[
-                                                                           ca_atoms_df.reset_index(drop=True)[
-                                                                               'atom_number'].isin(
-                                                                               i_ca_atoms_df.reset_index(drop=True)[
-                                                                                   'atom_number']
-                                                                           )
-                                                                       ].index)
-
-                    # Assemble interface structure quality scores predicted by the model
-                    i_pred_node_feats = qa_pred.clone().reshape(-1, 1)
-                    if ca_only:
-                        i_pred_node_feats = i_pred_node_feats[interfacing_ca_atom_indices, :]
-                    else:
-                        i_pred_node_feats = i_pred_node_feats[interfacing_ca_atom_indices, :]
-                    i_quality_pred = torch.clamp(
-                        i_pred_node_feats,
-                        min=0.0,
-                        max=1.0
-                    )  # Ensure pLDDT is in [0, 1]
-                    i_quality_pred_df = pd.DataFrame(i_quality_pred.cpu().numpy(), columns=['Predicted LDDT-Ca'])
-                    i_quality_pred_mean_val = i_quality_pred_df.sum(axis=0).values.squeeze() / len(i_quality_pred_df)
-
-                    # Aggregate CASP predictions
-                    global_mqs = 1 - g_quality_pred_mean_val
-                    interface_mqs = 1 - i_quality_pred_mean_val
-                    i_res_qs = [
-                        f'{tpl.chain_id}{tpl.residue_number}:{i_quality_pred[i].item()}'
-                        for i, tpl in enumerate(interfacing_ca_atoms_df.itertuples(index=False))
-                    ]
-
-                    casp_preds_col.append([
-                        os.path.split(filepath)[-1], global_mqs.item(), interface_mqs.item(), *i_res_qs
-                    ])
 
                     # Record structure quality scores predicted by the model
                     quality_pred_filename_postfix = '_refined' if args.perform_pos_refinement else ''
