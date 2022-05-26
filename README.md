@@ -249,7 +249,7 @@ Now that we know Docker is functioning properly, we can begin building our Docke
     ```
     
     ```bash
-    # To predict refined structures and per-residue quality using Ca-atom graphs and an SEGNN model
+    # To predict refined structures and per-residue quality using Ca-atom graphs and an EGR model
     # (Note: Best model for balanced QA results) #
     ckpt_dir="$DR_DIR"/project/checkpoints/EGR_Ca_Atom_Models
     ckpt_name=LitPSR_EGR_CaAtomModel1_Seed32.ckpt
@@ -365,7 +365,7 @@ graph_return_format=dgl
 ```
 
 ```bash
-# To predict refined structures and per-residue quality using Ca-atom graphs and an SEGNN model
+# To predict refined structures and per-residue quality using Ca-atom graphs and an EGR model
 # (Note: Best model for balanced QA results) #
 ckpt_dir="$DR_DIR"/project/checkpoints/EGR_Ca_Atom_Models
 ckpt_name=LitPSR_EGR_CaAtomModel1_Seed32.ckpt
