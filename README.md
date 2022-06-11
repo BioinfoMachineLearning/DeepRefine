@@ -386,15 +386,16 @@ nn_type=SEGNN
 graph_return_format=pyg
 ```
 
-Decide whether to predict per-residue LDDT scores *and refine atom positions* or to instead solely predict per-residue LDDT scores (for faster inference times with Ca atom models):
+Decide whether to predict per-residue LDDT scores *and refine atom positions* or to instead solely predict per-residue LDDT scores (for faster inference times with Ca atom models).
+To predict refined positions and LDDT scores, include the flag:
 ```bash
-perform_pos_refinement=True
+--perform_pos_refinement
 ```
 
 Make predictions:
 ```bash
 # Hint: Run `python3 lit_model_predict.py --help` to see all available CLI arguments
-python3 lit_model_predict.py --perform_pos_refinement "$perform_pos_refinement" --device_type gpu --num_devices 1 --num_compute_nodes 1 --num_workers 1 --batch_size 1 --input_dataset_dir "$DR_DIR"/project/datasets/Test_Input/Test_Target/ --output_dir "$DR_DIR"/project/datasets/Test_Output/Test_Target/ --ckpt_dir "$ckpt_dir" --ckpt_name "$ckpt_name" --atom_selection_type "$atom_selection_type" --seed "$seed" --nn_type "$nn_type" --graph_return_format "$graph_return_format"
+python3 lit_model_predict.py --perform_pos_refinement --device_type gpu --num_devices 1 --num_compute_nodes 1 --num_workers 1 --batch_size 1 --input_dataset_dir "$DR_DIR"/project/datasets/Test_Input/Test_Target/ --output_dir "$DR_DIR"/project/datasets/Test_Output/Test_Target/ --ckpt_dir "$ckpt_dir" --ckpt_name "$ckpt_name" --atom_selection_type "$atom_selection_type" --seed "$seed" --nn_type "$nn_type" --graph_return_format "$graph_return_format"
 ```
 
 This script will generate and (as PDB files - e.g., `datasets/Test_Output/Test_Target/6GS2/6GS2_refined.pdb`)
