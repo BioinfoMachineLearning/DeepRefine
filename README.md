@@ -437,7 +437,6 @@ Table 1: Performance of different refinement methods on each test dataset.
 |                       |                             |                            | <u>Benchmark 2 (17)</u>       |                            |                      |
 | Modeller              | -0.1855                     | +0.7939                    | +3.0277                       | 5.88%                      | 0.60%                |
 | GalaxyRefineComplex   | -0.0074                     | +0.0778                    | -**0.0246**                   | 22.22%                     | 2.12%                |
-| GNNRefine             | +0.0025                     | +0.0226                    | +0.0602                       | 47.06%                     | 1.26%                |
 | EGR-C&alpha;-Modeller | -0.2644 &pm; 0.0437         | +2.118 &pm; 0.7832         | +5.9196 &pm; 1.8589           | 15.69% &pm; 2.77%          | 1.28% &pm; 0.84%     |
 | SET-AllAtom           | -0.0078 &pm; 0.0015         | +0.0729 &pm; 0.0186        | +0.0469 &pm; 0.0114           | 29.63% &pm; 2.62%          | 0.33% &pm; 0.14%     |
 | SEGNN-AllAtom         | -0.0328 &pm; 0.0062         | +0.0807 &pm; 0.0790        | +0.0781 &pm; 0.1371           | 31.37% &pm; 5.54%          | 1.24% &pm; 0.59% |
